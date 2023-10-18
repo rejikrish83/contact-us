@@ -20,6 +20,10 @@ export class ApiService {
 
   // Function to make a POST request
   postData(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/contact-messagest`, data,this.httpOptions);
+    return this.http.post(`${this.apiUrl}/contact-messages`, data,this.httpOptions);
+  }
+
+  postMessageToTopic(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/publish`, data,this.httpOptions);
   }
 }

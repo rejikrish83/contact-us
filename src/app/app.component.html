@@ -8,9 +8,12 @@
       <h1
         class="text-gray-900 text-3xl mb-4 font-medium title-font text-green-500"
       >
-        Angular Contact Form
+        Contact Form
       </h1>
       <br/>
+      <div class="text-gray-900 text-3xl mb-4 font-medium title-font text-green-500" *ngIf="messageNew">
+        <p>{{ messageNew }}</p>
+      </div>
       <div class="relative mb-4">
         <label for="name" class="leading-7 text-sm text-gray-600">Name<span *ngIf="form!.get('name')!.hasError('required')" class="required"></span></label>
 
