@@ -1,0 +1,104 @@
+<section class="text-gray-600 body-font relative">
+  <div class="container px-5 mx-auto flex flex-wrap">
+    <form
+      [formGroup]="form"
+      (ngSubmit)="send()"
+      class="bg-white flex flex-col w-full mt-8"
+    >
+      <h1
+        class="text-gray-900 text-3xl mb-4 font-medium title-font text-green-500"
+      >
+        Angular Contact Form
+      </h1>
+      <br/>
+      <div class="relative mb-4">
+        <label for="name" class="leading-7 text-sm text-gray-600">Name<span *ngIf="form!.get('name')!.hasError('required')" class="required"></span></label>
+
+        <input
+          formControlName="name" required
+          type="text"
+          id="name"
+          name="name"
+          class="
+            w-full
+            bg-white
+            rounded
+            border border-gray-300
+            text-base
+            outline-none
+            text-gray-700
+            py-1
+            px-3
+            leading-8
+          "
+        />
+      </div>
+      <div class="relative mb-4">
+        <label for="email" class="leading-7 text-sm text-gray-600">Email<span *ngIf="form!.get('email')!.hasError('required')" class="required"></span></label>
+        <input
+          formControlName="email" required
+          type="email"
+          id="email"
+          name="email"
+          class="
+            w-full
+            bg-white
+            rounded
+            border border-gray-300
+            text-base
+            outline-none
+            text-gray-700
+            py-1
+            px-3
+            leading-8
+          "
+        />
+
+      </div>
+
+      <div class="relative mb-4">
+        <label for="message" class="leading-7 text-sm text-gray-600"
+          >Message<span *ngIf="form!.get('message')!.hasError('required')" class="required"></span></label
+        >
+        <textarea
+          formControlName="message" required
+          id="message"
+          name="message"
+          class="
+            w-full
+            bg-white
+            rounded
+            border border-gray-300
+            h-32
+            text-base
+            outline-none
+            text-gray-700
+            py-1
+            px-3
+            resize-none
+            leading-6
+            transition-colors
+            duration-200
+            ease-in-out
+          "
+        ></textarea>
+      </div>
+      <button
+        type="submit" [disabled]="!form.valid"
+        class="
+          text-white
+          bg-green-500
+          border-0
+          py-2
+          px-6
+          focus:outline-none
+          hover:bg-green-600
+          rounded
+          text-lg
+        "
+      >
+        Send
+      </button>
+    </form>
+  </div>
+</section>
