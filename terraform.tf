@@ -79,7 +79,7 @@ data "aws_iam_policy_document" "contactusweb_ecs_task_execution_role" {
 # ECS task execution role
 resource "aws_iam_role" "contactusweb-ecs_task_execution_role" {
   name               = var.contactusweb-ecs_task_execution_role_name
-  assume_role_policy = data.aws_iam_policy_document.contactusweb-ecs_task_execution_role.json
+  assume_role_policy = data.aws_iam_policy_document.contactusweb_ecs_task_execution_role.json
   lifecycle {
     prevent_destroy = true
   }
