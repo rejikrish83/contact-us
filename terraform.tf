@@ -127,7 +127,7 @@ resource "aws_ecs_service" "main" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups  = [aws_security_group.contactusweb-ecs_tasks.id]
+    security_groups  = [aws_security_group.ecs_taskss.id]
     subnets          = aws_subnet.private.*.id
     assign_public_ip = true
   }
@@ -138,7 +138,7 @@ resource "aws_ecs_service" "main" {
     container_port   = var.app_port
   }
 
-  depends_on = [aws_alb_listener.front_end, aws_iam_role_policy_attachment.ecs_task_execution_role]
+  depends_on = [aws_alb_listener.front_end, aws_iam_role_policy_attachment.contactusweb-ecs_task_execution_role]
 }
 
 # alb.tf
