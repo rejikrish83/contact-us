@@ -8,11 +8,11 @@ provider "aws" {
 terraform {
   # Terraform back-end configuration
   	backend "s3" {
-  	bucket         = "messageappbucket"
+  	bucket         = "contactuswebappbucket"
     encrypt        = true
-    key            = "messageappbucket/terraform.tfstate"
+    key            = "contactuswebappbucket/terraform.tfstate"
     region         = "eu-north-1"
-    dynamodb_table = "messagingApp"
+    dynamodb_table = "contactuswebapp"
   }
 }
 # variables.tf
@@ -22,9 +22,9 @@ variable "aws_region" {
   default     = "eu-north-1"
 }
 
-variable "ecs_task_execution_role_name" {
+variable "contactusweb-ecs_task_execution_role_name" {
   description = "ECS task execution role name"
-  default = "myEcsTaskExecutionRole"
+  default = "contactuswebEcsTaskExecutionRole"
 }
 
 variable "az_count" {
@@ -34,12 +34,12 @@ variable "az_count" {
 
 variable "app_image" {
   description = "Docker image to run in the ECS cluster"
-  default     = "470502905291.dkr.ecr.eu-north-1.amazonaws.com/message-app:latest"
+  default     = "470502905291.dkr.ecr.eu-north-1.amazonaws.com/contact-us-web:latest"
 }
 
 variable "app_port" {
   description = "Port exposed by the docker image to redirect traffic to"
-  default     = 8080
+  default     = 80
 }
 
 variable "app_count" {
@@ -62,7 +62,7 @@ variable "fargate_memory" {
 }
 
 # ECS task execution role data
-data "aws_iam_policy_document" "ecs_task_execution_role" {
+data "aws_iam_policy_document" "contactusweb_ecs_task_execution_role" {
   version = "2012-10-17"
   statement {
     sid = ""
@@ -77,27 +77,27 @@ data "aws_iam_policy_document" "ecs_task_execution_role" {
 }
 
 # ECS task execution role
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = var.ecs_task_execution_role_name
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_execution_role.json
+resource "aws_iam_role" "contactusweb-ecs_task_execution_role" {
+  name               = var.contactusweb-ecs_task_execution_role_name
+  assume_role_policy = data.aws_iam_policy_document.contactusweb-ecs_task_execution_role.json
   lifecycle {
     prevent_destroy = true
   }
 }
 
 # ECS task execution role policy attachment
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role" {
-  role       = aws_iam_role.ecs_task_execution_role.name
+resource "aws_iam_role_policy_attachment" "contactusweb-ecs_task_execution_role" {
+  role       = aws_iam_role.contactusweb-ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 # ecs.tf
 
 resource "aws_ecs_cluster" "main" {
-  name = "cb-cluster"
+  name = "contactusweb-cluster"
 }
 
-data "template_file" "cb_app" {
+data "template_file" "contactusweb_app" {
   template = file("./templates/ecs/cb_app.json.tpl")
 
   vars = {
@@ -109,32 +109,32 @@ data "template_file" "cb_app" {
   }
 }
 
-resource "aws_ecs_task_definition" "app" {
-  family                   = "cb-app-task"
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+resource "aws_ecs_task_definition" "contactusweb-app" {
+  family                   = "ccontactusweb-app-task"
+  execution_role_arn       = aws_iam_role.contactusweb-ecs_task_execution_role.arn
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = var.fargate_cpu
   memory                   = var.fargate_memory
-  container_definitions    = data.template_file.cb_app.rendered
+  container_definitions    = data.template_file.contactusweb_app.rendered
 }
 
 resource "aws_ecs_service" "main" {
-  name            = "cb-services"
+  name            = "contactusweb-services"
   cluster         = aws_ecs_cluster.main.id
-  task_definition = aws_ecs_task_definition.app.arn
+  task_definition = aws_ecs_task_definition.contactusweb-app.arn
   desired_count   = var.app_count
   launch_type     = "FARGATE"
 
   network_configuration {
-    security_groups  = [aws_security_group.ecs_tasks.id]
+    security_groups  = [aws_security_group.contactusweb-ecs_tasks.id]
     subnets          = aws_subnet.private.*.id
     assign_public_ip = true
   }
 
   load_balancer {
     target_group_arn = aws_alb_target_group.app.id
-    container_name   = "cb-app"
+    container_name   = "contactusweb-app"
     container_port   = var.app_port
   }
 
@@ -144,7 +144,7 @@ resource "aws_ecs_service" "main" {
 # alb.tf
 
 resource "aws_alb" "main" {
-  name            = "cb-load-balancer"
+  name            = "contactusweb-load-balancer"
   subnets         = aws_subnet.public.*.id
   security_groups = [aws_security_group.lb.id]
   lifecycle {
@@ -153,7 +153,7 @@ resource "aws_alb" "main" {
 }
 
 resource "aws_alb_target_group" "app" {
-  name        = "cb-target-group"
+  name        = "contactusweb-target-group"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
@@ -197,7 +197,7 @@ resource "aws_appautoscaling_target" "target" {
 
 # Automatically scale capacity up by one
 resource "aws_appautoscaling_policy" "up" {
-  name               = "cb_scale_up"
+  name               = "contactusweb_scale_up"
   service_namespace  = "ecs"
   resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.main.name}"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -218,7 +218,7 @@ resource "aws_appautoscaling_policy" "up" {
 
 # Automatically scale capacity down by one
 resource "aws_appautoscaling_policy" "down" {
-  name               = "cb_scale_down"
+  name               = "contactusweb_scale_down"
   service_namespace  = "ecs"
   resource_id        = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.main.name}"
   scalable_dimension = "ecs:service:DesiredCount"
@@ -239,7 +239,7 @@ resource "aws_appautoscaling_policy" "down" {
 
 # CloudWatch alarm that triggers the autoscaling up policy
 resource "aws_cloudwatch_metric_alarm" "service_cpu_high" {
-  alarm_name          = "cb_cpu_utilization_high"
+  alarm_name          = "contactusweb_cpu_utilization_high"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -258,7 +258,7 @@ resource "aws_cloudwatch_metric_alarm" "service_cpu_high" {
 
 # CloudWatch alarm that triggers the autoscaling down policy
 resource "aws_cloudwatch_metric_alarm" "service_cpu_low" {
-  alarm_name          = "cb_cpu_utilization_low"
+  alarm_name          = "contactusweb_cpu_utilization_low"
   comparison_operator = "LessThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -279,7 +279,7 @@ resource "aws_cloudwatch_metric_alarm" "service_cpu_low" {
 
 # ALB Security Group: Edit to restrict access to the application
 resource "aws_security_group" "lb" {
-  name        = "cb-load-balancer-security-group"
+  name        = "contactusweb-load-balancer-security-group"
   description = "controls access to the ALB"
   vpc_id      = aws_vpc.main.id
 
@@ -300,7 +300,7 @@ resource "aws_security_group" "lb" {
 
 # Traffic to the ECS cluster should only come from the ALB
 resource "aws_security_group" "ecs_tasks" {
-  name        = "cb-ecs-tasks-security-group"
+  name        = "contactusweb-ecs-tasks-security-group"
   description = "allow inbound access from the ALB only"
   vpc_id      = aws_vpc.main.id
 
@@ -322,21 +322,21 @@ resource "aws_security_group" "ecs_tasks" {
 # logs.tf
 
 # Set up CloudWatch group and log stream and retain logs for 30 days
-resource "aws_cloudwatch_log_group" "cb_log_group" {
-  name              = "/ecs/cb-app"
+resource "aws_cloudwatch_log_group" "contactusweb_log_group" {
+  name              = "/ecs/contactusweb-app"
   retention_in_days = 30
 
   tags = {
-    Name = "cb-log-group"
+    Name = "contactusweb-log-group"
   }
   lifecycle {
     prevent_destroy = true
   }
 }
 
-resource "aws_cloudwatch_log_stream" "cb_log_stream" {
+resource "aws_cloudwatch_log_stream" "contactusweb_log_stream" {
   name           = "cb-log-stream"
-  log_group_name = aws_cloudwatch_log_group.cb_log_group.name
+  log_group_name = aws_cloudwatch_log_group.contactusweb_log_group.name
 }
 
 # versions.tf
